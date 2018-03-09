@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="bootstrap" />
+        <module name="ElectronicFence" />
+        <module name="ElectronicPlateUser" />
+        <module name="eplateGIS" />
+        <module name="eplateuser" />
+        <module name="SMVCDemo" />
+        <module name="springMMControl" />
+        <module name="totalControl" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="bootstrap" target="1.7" />
+      <module name="ElectronicFence" target="1.8" />
+      <module name="ElectronicPlateUser" target="1.8" />
+      <module name="eplateGIS" target="1.8" />
+      <module name="eplateuser" target="1.7" />
+      <module name="SMVCDemo" target="1.8" />
+      <module name="springMMControl" target="1.8" />
+      <module name="totalControl" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
