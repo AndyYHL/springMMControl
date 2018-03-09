@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--suppress ALL -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd" default-lazy-init="true">
+    <!--配置多数据源信息-->
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <value>classpath:properties/database.properties</value>
+        </property>
+    </bean>
+    <bean id="abstractDataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close" abstract="true">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <!-- 配置获取连接等待超时的时间 -->
+        <property name="maxWait" value="60000" />
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis" value="60000" />
+        <!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="300000" />
+        <property name="validationQuery" value="${validationQuery}" />
+        <property name="testWhileIdle" value="true" />
+        <property name="testOnBorrow" value="false" />
+        <property name="testOnReturn" value="false" />
+        <!--是否缓存preparedStatement，也就是PSCache。PSCache对支持游标的数据库性能提升巨大，比如说oracle。在mysql下建议关闭。-->
+        <!-- 打开PSCache，并且指定每个连接上PSCache的大小 -->
+        <!--        <property name="poolPreparedStatements" value="true" />
+                <property name="maxPoolPreparedStatementPerConnectionSize" value="20" />-->
+        <!--
+        如果配置了proxyFilters，此配置可以不配置
+        druid.stat.mergeSql=true 合并执行的相同sql，避免因为参数不同而统计多条sql语句
+        druid.stat.slowSqlMillis=10000 用来配置SQL慢的标准，执行时间超过slowSqlMillis的就是慢
+        <property name="connectionProperties" value="druid.stat.mergeSql=true;druid.stat.slowSqlMillis=10000" />
+        -->
+        <!-- 配置监控统计拦截的filters，去掉后监控界面sql无法统计 -->
+        <property name="filters" value="stat,wall,log4j2" />
+    </bean>
+
+    <bean id="writeSource" parent="abstractDataSource">
+        <property name="url" value="${master.jdbc.url}" />
+        <property name="username" value="${jdbc.username}" />
+        <property name="password" value="${jdbc.password}" />
+        <!-- 配置初始化大小、最小、最大 -->
+        <property name="initialSize" value="20" />
+        <property name="minIdle" value="50" />
+        <property name="maxActive" value="100" />
+    </bean>
+    <bean id="readSource" parent="abstractDataSource">
+        <property name="url" value="${slave.jdbc.url}" />
+        <property name="username" value="${jdbc.username}" />
+        <property name="password" value="${jdbc.password}" />
+        <!-- 配置初始化大小、最小、最大 -->
+        <property name="initialSize" value="20" />
+        <property name="minIdle" value="50" />
+        <property name="maxActive" value="100" />
+    </bean>
+    <!--DataSource 所关联的mapper-->
+    <bean id="xmlSqlSessionFactoryWrite" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="configLocation">
+            <value>classpath:mybatis/mybatisConfig.xml</value>
+        </property>
+        <property name="dataSource" ref="writeSource" />
+        <property name="mapperLocations" value="classpath:mybatis/core/write/**/*.xml"/>
+    </bean>
+    <bean id="xmlSqlSessionFactoryRead" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="configLocation">
+            <value>classpath:mybatis/mybatisConfig.xml</value>
+        </property>
+        <property name="dataSource" ref="readSource" />
+        <property name="mapperLocations" value="classpath:mybatis/core/read/**/*.xml"/>
+    </bean>
+
+    <!-- MapperDao的管理及注入 这里不能为sqlSessionFactory-->
+    <!--http://blog.csdn.net/huiwenjie168/article/details/51722290-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="xmlSqlSessionFactoryWrite" />
+        <property name="basePackage" value="com.hx.eplate.dao.write"/>
+    </bean>
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="xmlSqlSessionFactoryRead" />
+        <property name="basePackage" value="com.hx.eplate.dao.read"/>
+    </bean>
+
+</beans>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hx.eplate.dao.read.PrisonInfoReadDao">
+
+	<select id="find"  parameterType="map" resultType="map">
+		SELECT rfid_id as id,rfid_code as code,rfid_name as name,
+		CASE rfid_status
+		WHEN '1' THEN '运行中'
+		WHEN '0' THEN '停用'
+		WHEN '-1' THEN '故障'
+		ELSE '其他' END  as status
+		,location,lng,lat,addtime FROM cm_eplate_ydq
+		WHERE 1=1
+		<if test="location != null and location != ''">
+			<if test="location != '全部'"> AND location LIKE '%${location}%'</if>
+		</if>
+		<if test="name != null and name != ''"> AND rfid_name LIKE '%${name}%'</if>
+	</select>
+
+	<select id="findEntity" parameterType="map" resultType="map">
+		SELECT CONCAT(t.id , '') sid,t.id,t.`name`,t.address,t.phone,t.adminnum,t.addtime,t.isdelete
+		FROM prison_info AS t
+		WHERE isdelete = 0
+		<if test="data != null">
+			<if test="data.name !=null and data.name != ''"> AND name = #{data.name}</if>
+			<if test="data.address !=null and data.address != ''"> AND address LIKE '%${data.address}%'</if>
+		</if>
+	</select>
+	<!-- 分页查询数据 -->
+	<select id="findLimit" resultType="map" parameterType="map">
+		SELECT t.id,t.`name`,t.address,t.phone,t.adminnum,t.addtime,t.isdelete
+		FROM prison_info AS t INNER JOIN(SELECT id FROM prison_info WHERE 1 = 1 AND isdelete = 0
+		<if test="data != null">
+			<if test="data.name !=null and data.name != ''"> AND name = #{data.name}</if>
+			<if test="data.address !=null and data.address != ''"> AND address LIKE '%${data.address}%'</if>
+		</if>
+		ORDER BY id DESC
+		LIMIT ${(extlimit.pageindex-1)*extlimit.pagesize},${extlimit.pagesize}) AS page USING(id)
+		ORDER BY
+		<choose>
+			<when test="extlimit.sort != null">
+				${extlimit.sort} ${extlimit.dir}
+			</when>
+			<otherwise>
+				id DESC
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="findCount" resultType="int" parameterType="map">
+		SELECT COUNT(1) AS totalCount FROM prison_info WHERE 1=1 AND isdelete = 0
+		<if test="data != null">
+			<if test="data.name !=null and data.name != ''"> AND name = #{data.name}</if>
+			<if test="data.address !=null and data.address != ''"> AND address LIKE '%${data.address}%'</if>
+		</if>
+	</select>
+
+</mapper>

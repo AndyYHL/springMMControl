@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hx.eplate.dao.write.DeviceInfoReadDao">
+	<insert id="save" parameterType="map" keyProperty="id" keyColumn="id" useGeneratedKeys="true">
+		INSERT INTO device_info (`code`,devicetype,`status`,unusual,prison_id,prison_name)
+		VALUES (
+			#{data.code},
+			#{data.devicetype},
+			#{data.status},
+			#{data.unusual},
+			#{data.prison_id},
+			#{data.prison_name},
+		)
+	</insert>
+
+	<insert id="saveNotNull" parameterType="map" keyProperty="id" keyColumn="id" useGeneratedKeys="true">INSERT INTO device_info
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="data.code != null">`code`,</if>
+			<if test="data.devicetype != null">`devicetype`,</if>
+			<if test="data.status != null">`status`,</if>
+			<if test="data.unusual != null">`unusual`,</if>
+			<if test="data.prison_id != null">`prison_id`,</if>
+			<if test="data.prison_name != null">`prison_name`,</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="data.code != null">#{data.code},</if>
+			<if test="data.devicetype != null">#{data.devicetype},</if>
+			<if test="data.status != null">#{data.status},</if>
+			<if test="data.unusual != null">#{data.unusual},</if>
+			<if test="data.prison_id != null">#{data.prison_id},</if>
+			<if test="data.prison_name != null">#{data.prison_name},</if>
+		</trim>
+	</insert>
+
+	<update id="upt" parameterType="map">
+		UPDATE device_info
+		<set>
+			<if test="data.code != null">#{data.code},</if>
+			<if test="data.devicetype != null">#{data.devicetype},</if>
+			<if test="data.status != null">#{data.status},</if>
+			<if test="data.unusual != null">#{data.unusual},</if>
+			<if test="data.prison_id != null">#{data.prison_id},</if>
+			<if test="data.prison_name != null">#{data.prison_name},</if>
+		</set> WHERE id = #{data.id}
+	</update>
+
+	<delete id="del" parameterType="int">DELETE FROM device_info WHERE id = #{data.id}</delete>
+</mapper>

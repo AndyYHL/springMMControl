@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hx.eplate.dao.write.PrisonInfoWriteDao">
+
+	<insert id="save" parameterType="map" keyProperty="id" keyColumn="id" useGeneratedKeys="true">
+		INSERT INTO prison_info(
+		`name`,
+		address,
+		phone,
+		adminnum)
+		VALUES
+		(
+			#{data.name},
+			#{data.address},
+			#{data.phone},
+			#{data.adminnum}
+		)
+	</insert>
+
+	<insert id="saveNotNull" parameterType="map" keyProperty="id" keyColumn="id" useGeneratedKeys="true">INSERT INTO prison_info
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="data.name != null">`name`,</if>
+			<if test="data.address != null">`address`,</if>
+			<if test="data.phone != null">`phone`,</if>
+			<if test="data.adminnum != null">`adminnum`,</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="data.name != null">#{data.name},</if>
+			<if test="data.address != null">#{data.address},</if>
+			<if test="data.phone != null">#{data.phone},</if>
+			<if test="data.adminnum != null">#{data.adminnum},</if>
+		</trim>
+	</insert>
+
+	<update id="upt" parameterType="map">
+		UPDATE prison_info
+		<set>
+			<if test="data.name != null">name=#{data.name},</if>
+			<if test="data.address != null">address=#{data.address},</if>
+			<if test="data.phone != null">phone=#{data.phone},</if>
+			<if test="data.adminnum != null">adminnum=#{data.adminnum},</if>
+			<if test="data.isdelete">isdelete=#{data.isdelete},</if>
+		</set> WHERE id = #{data.id}
+	</update>
+
+	<delete id="del" parameterType="int">DELETE FROM prison_info WHERE id = #{data.id}</delete>
+</mapper>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd"
+       default-lazy-init="true">
+    <!-- (事务管理)transaction manager, use JtaTransactionManager for global tx 标识方式：@Transactional("dataSource")-->
+    <bean id="writeTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="writeSource"/>
+        <qualifier value="writeSource"/>
+    </bean>
+
+    <bean id="readTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="readSource"/>
+        <qualifier value="readSource"/>
+    </bean>
+
+    <!--事务管理  基于注解@Transactional-->
+    <!--<tx:annotation-driven transaction-manager="transactionManager" />-->
+    <tx:annotation-driven />
+
+    <!--druid Spring 类监控-->
+    <bean id="druid-stat-pointcut" class="org.springframework.aop.support.JdkRegexpMethodPointcut"
+          scope="prototype">
+        <property name="patterns">
+            <list>
+                <value>com.hx.eplate.service.*</value>
+                <value>com.hx.eplate.dao.epp.impl.*</value>
+            </list>
+        </property>
+    </bean>
+    <bean id="druid-stat-interceptor" class="com.alibaba.druid.support.spring.stat.DruidStatInterceptor"/>
+</beans>

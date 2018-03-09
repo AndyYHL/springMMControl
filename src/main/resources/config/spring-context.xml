@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--suppress ALL -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+    <!--扫描业务层和Dao-->
+    <context:component-scan base-package="com.hx.eplate.service" />
+    <context:component-scan base-package="com.hx.eplate.dao" />
+    <!-- 引入属性配置文件 -->
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:properties/database.properties</value>
+                <value>classpath:properties/redis.properties</value>
+            </list>
+        </property>
+        <!--防止配置文件无法重复加载-->
+        <property name="ignoreUnresolvablePlaceholders" value="true" />
+    </bean>
+    <!--<bean id="ApplicationContextUtil" class="com.ac.util.ApplicationContextUtil"/>-->
+    <import resource="spring-datasource.xml"/><!--引入数据源druid-->
+    <import resource="spring-session.xml"/><!--引入共享Session-->
+    <import resource="spring-transaction.xml"/><!--引入事务 和druid监控-->
+    <!--<import resource="spring-shiro.xml"/>&lt;!&ndash;引入shiro安全控制&ndash;&gt;-->
+    <import resource="rocketmq-consumer.xml"/><!--mq消费端-->
+    <import resource="rocketmq-producer.xml"/><!--mq生产端-->
+</beans>
