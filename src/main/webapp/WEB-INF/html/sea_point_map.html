@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+    <!-- 原始地址：//webapi.amap.com/ui/1.0/ui/misc/PointSimplifier/examples/multi-icons.html -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>海量点图标分组</title>
+    <!--海量点样式-->
+    <style>
+        html,
+        body,
+        #container {
+            width: 100%;
+            height: 100%;
+            margin: 0px;
+        }
+
+        #loadingTip {
+            position: absolute;
+            z-index: 9999;
+            top: 0;
+            left: 0;
+            padding: 3px 10px;
+            background: red;
+            color: #fff;
+            font-size: 13px;
+        }
+    </style>
+    <!--鼠标样式-->
+    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
+</head>
+
+<body>
+<div id="container"></div>
+<script type="text/javascript" src='//webapi.amap.com/maps?v=1.4.0&key=65aa61936f59b81555bf8d2b86ff8a32'></script>
+<!-- UI组件库 1.0 -->
+<script src="//webapi.amap.com/ui/1.0/main.js?v=1.0.11"></script>
+<script type="text/javascript">
+    //创建地图
+    var map = new AMap.Map('container', {
+        resizeEnable: true,
+        center: [104.06,30.67],//地图中心点
+        zoom: 13, //地图显示的缩放级别
+        mapStyle:'amap://styles/507577362c4610dffdc9a515ea847e67'
+    });
+    //实时路况图层
+    var trafficLayer = new AMap.TileLayer.Traffic({
+        zIndex: 10
+    });
+    trafficLayer.setMap(map);
+    trafficLayer.show();
+
+    //just some colors
+    var colors = [
+        "#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00",
+        "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707",
+        "#651067", "#329262", "#5574a6", "#3b3eac"
+    ];
+
+
+    function initPage(PointSimplifier, $) {
+
+        var pointSimplifierIns, groupStyleMap;
+
+        pointSimplifierIns = new PointSimplifier({
+            zIndex: 115,
+            //autoSetFitView: false,
+            map: map, //所属的地图实例
+
+            getPosition: function(item) {
+
+                var lngLatLine = item.lngLatLine;
+
+                if (!lngLatLine) {
+                    return null;
+                }
+
+                return [lngLatLine.lng,lngLatLine.lat];
+            },
+            getHoverTitle: function(dataItem, idx) {
+                return '序号: ' + idx;
+            },
+            //使用GroupStyleRender
+            renderConstructor: PointSimplifier.Render.Canvas.GroupStyleRender,
+            //普通点样式
+            renderOptions: {
+                //点的样式
+                pointStyle: {
+                    width: 5,
+                    height: 5,
+                    fillStyle:'#A2D0FA'
+                },
+                getGroupId: function(item, idx) {
+
+                    return item.groupId;
+                },
+                groupStyleOptions: function(gid) {
+
+                    return groupStyleMap[gid];
+                }
+
+            }
+        });
+
+        function onIconLoad() {
+            pointSimplifierIns.renderLater();
+        }
+
+        function onIconError(e) {
+            alert('图片加载失败！');
+        }
+
+        groupStyleMap = {
+            '0': {
+                pointStyle: {
+                    width: 10,
+                    height: 10,
+                    fillStyle:'#0099c6'
+                }
+            },
+            '1': {
+                pointStyle: {
+                    width: 16,
+                    height: 16,
+                    fillStyle:'#dc3912'
+                }
+            },
+            '2': {
+                pointStyle: {
+                    //绘制点占据的矩形区域
+                    content: PointSimplifier.Render.Canvas.getImageContent(
+                        'http://webapi.amap.com/ui/1.0/ui/misc/PointSimplifier/examples/imgs/truck.png', onIconLoad, onIconError),
+                    //宽度
+                    width: 32,
+                    //高度
+                    height: 32,
+                    //定位点为中心
+                    offset: ['-50%', '-50%'],
+                    fillStyle: null,
+                    //strokeStyle: null
+                }
+            }
+        };
+
+        $('<div id="loadingTip">加载数据，请稍候...</div>').appendTo(document.body);
+        $.get('http://localhost:8080/api/gis/gmap/pointsimplifier/initView?userid=1', function(csv) {
+            $('#loadingTip').remove();
+            //整合数据
+            var map = JSON.parse(csv);
+            var rfid_lines = map.rfid,tw_lines = map.tw,dzy_lines = map.dzy,data = [];
+            for (var i = 0, len = rfid_lines.length; i < len; i++) {
+                data.push({
+                    lngLatLine: rfid_lines[i],
+                    groupId: 0
+                });
+            }
+            for (var i = 0, len = tw_lines.length; i < len; i++) {
+                data.push({
+                    lngLatLine: tw_lines[i],
+                    groupId: 1
+                });
+            }
+            for (var i = 0, len = dzy_lines.length; i < len; i++) {
+                data.push({
+                    lngLatLine: dzy_lines[i],
+                    groupId: 2
+                });
+            }
+
+            pointSimplifierIns.setData(data);    //监听事件
+            //http://lbs.amap.com/api/javascript-api/reference-amap-ui/mass-data/pointsimplifier
+            pointSimplifierIns.on('pointClick', function(e, record) {
+                console.log(e.type, record);
+            });
+        });
+    }
+
+    AMapUI.load(['ui/misc/PointSimplifier', 'lib/$'], function(PointSimplifier, $) {
+
+        if (!PointSimplifier.supportCanvas) {
+            alert('当前环境不支持 Canvas！');
+            return;
+        }
+
+        initPage(PointSimplifier, $);
+    });
+</script>
+</body>
+
+</html>

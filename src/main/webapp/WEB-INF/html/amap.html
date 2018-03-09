@@ -1,0 +1,230 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>基本地图展示</title>
+    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main.css?v=1.0" />
+    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
+    <script src="http://cache.amap.com/lbs/static/es5.min.js"></script>
+    <script src="http://webapi.amap.com/maps?v=1.4.0&key=65aa61936f59b81555bf8d2b86ff8a32&plugin=AMap.Scale,AMap.OverView,AMap.ToolBar,AMap.PolyEditor,AMap.CircleEditor,AMap.MouseTool,AMap.RangingTool,AMap.MapType"></script>
+    <script type="text/javascript" src="http://cache.amap.com/lbs/static/addToolbar.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <!-- UI组件库 1.0 -->
+    <script src="http://webapi.amap.com/ui/1.0/main.js?v=1.0.11"></script>
+</head>
+<body>
+<div id="mapContainer"></div>
+<div id="tip">
+    <label>可以缩放地图：</label><span id="info"></span></br>
+    <label>左击获取经纬度：</label><input type="text" readonly="true" id="lnglat">
+</div>
+<div class="button-group">
+	<input id="calc" type="button" class="button" value="计算点是否在多边形内"/>
+    <input type="button" class="button" value="鼠标绘制点" id="point"/>
+    <input type="button" class="button" value="鼠标绘制线" id="line"/>
+    <input type="button" class="button" value="鼠标绘制面" id="polygon"/>
+    <input type="button" class="button" value="开始编辑折线" onClick="editor.startEditLine()"/>
+    <input type="button" class="button" value="结束编辑折线" onClick="editor.closeEditLine()"/>
+    <input type="button" class="button" value="开始编辑多边形" onClick="editor.startEditPolygon()"/>
+    <input type="button" class="button" value="结束编辑多边形" onClick="editor.closeEditPolygon()"/>
+    <input type="button" class="button" value="开始编辑圆" onClick="editor.startEditCircle()"/>
+    <input type="button" class="button" value="结束编辑圆" onClick="editor.closeEditCircle()"/>
+    <input id="en" type="button" class="button" value="显示英文底图" />
+    <input id="zh_en" type="button" class="button" value="显示中英文对照底图" />
+    <input id="zh_cn" type="button" class="button" value="显示中文底图" />
+</div>
+
+<script>
+    //地图初始化
+    var editorTool, map = new AMap.Map("mapContainer", {
+        resizeEnable: true,
+        center: [104.06,30.67],//地图中心点
+        zoom: 13 //地图显示的缩放级别
+    });
+    ['en', 'zh_en', 'zh_cn'].forEach(function(btn) {
+        var button = document.getElementById(btn);
+        AMap.event.addDomListener(button,'click',clickListener)
+    });
+    function clickListener() {
+        map.setLang(this.id);
+    }
+    /////////////////////////////创建右击菜单//////////////////////////////
+    var contextMenu = new AMap.ContextMenu();  //创建右键菜单
+    //右键放大
+    contextMenu.addItem("放大一级", function() {
+        map.zoomIn();
+    }, 0);
+    //右键缩小
+    contextMenu.addItem("缩小一级", function() {
+        map.zoomOut();
+    }, 1);
+    //右键显示全国范围
+    contextMenu.addItem("缩放至全国范围", function(e) {
+        map.setZoomAndCenter(4, [104.06,30.67]);
+    }, 2);
+    //右击显示最近范围
+    contextMenu.addItem("缩放至最近范围", function(e) {
+        map.setZoomAndCenter(13, [104.06,30.67]);
+    }, 2);
+    //右键添加Marker标记
+    contextMenu.addItem("添加标记", function(e) {
+        var marker = new AMap.Marker({
+            map: map,
+            position: contextMenuPositon //基点位置
+        });
+    }, 3);
+
+    //地图绑定鼠标右击事件——弹出右键菜单
+    map.on('rightclick', function(e) {
+        contextMenu.open(map, e.lnglat);
+        contextMenuPositon = e.lnglat;
+    });
+	
+	var marker = new AMap.Marker({
+            map: map,
+            zIndex: 9999999,
+            position: [103.947016,30.636047],
+			icon: new AMap.Icon({            
+				size: new AMap.Size(40, 50),  //图标大小
+				image: "http://webapi.amap.com/theme/v1.3/images/newpc/way_btn2.png",
+				imageOffset: new AMap.Pixel(0, -60)
+			})     
+    });
+	
+	/////////////////////////////计算是否在图形内//////////////////////////
+	var path = [
+					[103.918006,30.707408],
+					[103.87715,30.577735],
+					[104.012076,30.595173],
+					[103.98667,30.694714]
+				];
+	var polygon = new AMap.Polygon({
+		map: map,
+		path: path
+	});
+	map.setFitView();
+	AMap.event.addDomListener(document.getElementById('calc'), 'click', function() {
+		alert('点是否在多边形内：' + polygon.contains(marker.getPosition()));
+	});
+    /////////////////////////////覆盖物////////////////////////////////////
+    AMapUI.loadUI(['overlay/SimpleInfoWindow'], function(SimpleInfoWindow) {
+		//弹出
+        var infoWindow = new SimpleInfoWindow({
+            //模板, underscore
+            infoTitle: '<strong>标题-标题</strong>',
+            infoBody: '<p class="my-desc"><img src="//webapi.amap.com/theme/v1.3/autonavi.png" /><---------内容---------></p>',
+            infoTplData: {
+                title: '"标题-标题"',
+                img: '<img src="//webapi.amap.com/theme/v1.3/autonavi.png" />',
+                body: '<---------内容--------->'
+            },
+            //基点指向marker的头部位置
+            offset: new AMap.Pixel(0, -31)
+        });
+        function openInfoWin() {
+            infoWindow.open(map, marker.getPosition());
+        }
+        //marker 点击时打开
+        AMap.event.addListener(marker, 'click', function() {
+            openInfoWin();
+        });
+        openInfoWin();
+    });
+
+    ///////////////////////////////地图操作////////////////////////////////
+    //获取缩放级别
+    AMap.event.addListener(map,'zoomend',function(){
+        $("#info").html( "当前缩放级别：" + map.getZoom());
+    });
+    //为地图注册click事件获取鼠标点击出的经纬度坐标
+    var clickEventListener = map.on('click', function(e) {
+        $("#lnglat").val(e.lnglat.getLng() + ',' + e.lnglat.getLat());
+    });
+    ///////////////////绘画地图////////////////////////////////////////////
+    //在地图上绘制折线
+    var editor={};
+    editor._line=(function(){
+        var lineArr = [
+            [104.190947,30.766427],
+            [104.21498,30.602561],
+            [104.303557,30.712721],
+            [104.367758,30.574484]
+        ];
+        return new AMap.Polyline({
+            map: map,
+            path: lineArr,
+            strokeColor: "#FF33FF",//线颜色
+            strokeOpacity: 1,//线透明度
+            strokeWeight: 3,//线宽
+            strokeStyle: "solid"//线样式
+        });
+    })();
+    editor._polygon=(function(){
+        var arr = [ //构建多边形经纬度坐标数组
+            [103.918006,30.707408],
+            [103.87715,30.577735],
+            [104.012076,30.595173],
+            [103.98667,30.694714]
+        ]
+        return new AMap.Polygon({
+            map: map,
+            path: arr,
+            strokeColor: "#0000ff",
+            strokeOpacity: 1,
+            strokeWeight: 3,
+            fillColor: "#f5deb3",
+            fillOpacity: 0.35
+        });
+    })();
+    editor._circle=(function(){
+        var circle = new AMap.Circle({
+            center: [104.06,30.67],// 圆心位置
+            radius: 1000, //半径
+            strokeColor: "#F33", //线颜色
+            strokeOpacity: 1, //线透明度
+            strokeWeight: 3, //线粗细度
+            fillColor: "#ee2200", //填充颜色
+            fillOpacity: 0.35//填充透明度
+        });
+        circle.setMap(map);
+        return circle;
+    })();
+    map.setFitView();
+    editor._lineEditor= new AMap.PolyEditor(map, editor._line);
+    editor._polygonEditor= new AMap.PolyEditor(map, editor._polygon);
+    editor._circleEditor= new AMap.CircleEditor(map, editor._circle);
+
+    editor.startEditLine=function(){
+        editor._lineEditor.open();
+    }
+    editor.closeEditLine=function(){
+        editor._lineEditor.close();
+    }
+    editor.startEditPolygon=function(){
+        editor._polygonEditor.open();
+    }
+    editor.closeEditPolygon=function(){
+        editor._polygonEditor.close();
+    }
+    editor.startEditCircle=function(){
+        editor._circleEditor.open();
+    }
+    editor.closeEditCircle=function(){
+        editor._circleEditor.close();
+    }
+
+    //在地图中添加MouseTool插件
+    var mouseTool = new AMap.MouseTool(map);
+    AMap.event.addDomListener(document.getElementById('point'), 'click', function() {
+        mouseTool.marker({offset:new AMap.Pixel(-14,-11)});
+    }, false);
+    AMap.event.addDomListener(document.getElementById('line'), 'click', function() {
+        mouseTool.polyline();
+    }, false);
+    AMap.event.addDomListener(document.getElementById('polygon'), 'click', function() {
+        mouseTool.polygon();
+    }, false);
+</script>
+</body>
+</html>
