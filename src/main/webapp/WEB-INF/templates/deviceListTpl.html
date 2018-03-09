@@ -1,0 +1,106 @@
+
+<div class="mainBox">
+    <div class="top bg">
+        <select class="long">
+            <option value="0">全部管理局</option>
+            <option ng-repeat="x in data.other" value="[[x.sid]]">[[x.name]]</option>
+        </select>
+        <button class="fr" ng-click="edit('0')">设备添加</button>
+    </div>
+
+    <table class="mainTable">
+        <tr>
+            <th>编号</th>
+            <th>设备类型</th>
+            <th>监测异常总数</th>
+            <th>隶属</th>
+            <th>操作</th>
+        </tr>
+        <tr ng-repeat="x in data.data">
+            <td>[[x.code]]</td>
+            <td>[[x.devicetype]]</td>
+            <td>[[x.unusual]]</td>
+            <td>[[x.prison_name]]</td>
+            <td><span class="popupShow" ng-click="edit(x)">编辑</span><b class="popupShow" ng-click="delete(x.id)">删除</b></td>
+        </tr>
+    </table>
+
+    <div class="page">
+        <ul uib-pagination boundary-links="true" total-items="totalItems"
+            ng-model="currentPage" class="pageBar" previous-text="&lsaquo;"
+            next-text="&rsaquo;" first-text="首页" last-text="末页" max-size="maxSize"
+            boundary-link-numbers="true"></ul>
+    </div>
+    <style type="text/css">
+        select {
+            width: 124px;
+            height: 35px;
+            border: none;
+            background: linear-gradient(#6ea0fa, #558adf);
+            border-radius: 5px;
+            font-size: 14px;
+            color: #000000;
+            cursor: pointer;
+        }
+        /*ul,li,a {padding: 0;margin: 0;}
+            a {text-decoration: none;color: #6d9ff9;}*/
+
+        .pagination>li>a {
+            margin-left: 0;
+            background: none;
+            border: none;
+            line-height: 1.8
+        }
+
+        .pagination>.active>a {
+            background: none;
+            border: none;
+        }
+
+        .pageBar {
+            width: 100%;
+            text-align: center;
+            background: #ffffff;
+            overflow: hidden;
+        }
+
+        .pageBar li {
+            display: inline-block;
+            min-width: 35px;
+            color: #6d9ff9;
+            cursor: pointer;
+            border-radius: 3px;
+            height: 35px;
+            line-height: 35px;
+        }
+
+        .pageBar li.active {
+            background: #6d9ff9;
+        }
+
+        .pageBar li.active a {
+            color: #ffffff;
+        }
+
+        .pageBar li:first-child,
+        .pageBar li:last-child {
+            border: 1px solid #6d9ff9;
+            border-radius: 5px;
+            color: #6d9ff9;
+            padding: 0 33px;
+        }
+
+        .pageBar li .border {
+            border: 1px solid #6d9ff9;
+            border-radius: 5px;
+            color: #6d9ff9;
+            padding: 0 33px;
+        }
+    </style>
+</div>
+
+<!--删除提醒-->
+<!--<div class="popupBox alert" style="display: block">-->
+    <!--<div class="popupBoxTop">删除确认 <img class="popupClose" src="images/close.png"/> </div>-->
+    <!--<div class="alertText">确认删除?<br/><button class="blue">确认</button> <button class="cancel">取消</button></div>-->
+<!--</div>-->
